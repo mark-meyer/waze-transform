@@ -1,0 +1,7 @@
+__pycache__/
+
+venv/
+
+config.py
+.DS_Store
+muni_closures.json

@@ -64,7 +64,8 @@ def run():
         logging.error(error)
         return
     
-    obj = {"incidents": [feature2Waze(f) for f in data['features']]}
+    features = filter(lambda x: x['properties']['starttime'], data['features'])
+    obj = {"incidents": [feature2Waze(f) for f in features]}
 
     try:
         with atomic_write(OUTPUT_CLOSURES_FILE, overwrite=True, mode='w') as file:

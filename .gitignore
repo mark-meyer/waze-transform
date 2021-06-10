@@ -5,3 +5,4 @@ venv/
 config.py
 .DS_Store
 muni_closures.json
+.vscode

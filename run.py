@@ -29,7 +29,8 @@ logging.basicConfig(
 
 
 def formatTime(t):
-    return pendulum.from_timestamp(t//1000, TZ).to_iso8601_string()
+    return pendulum.from_timestamp(t // 1000, TZ).to_iso8601_string()
+
 
 def feature2Waze(feature):
     '''Convert geojson feature to waze closure'''
@@ -43,28 +44,36 @@ def feature2Waze(feature):
         'starttime': formatTime(props['starttime']),
         'endtime': formatTime(props['endtime']),
         'location': {
-             'direction': props['direction'],
-             'street': props['street']
+            'direction': props['direction'],
+            'street': props['street']
         }
     }
-    
+
     try:
         output['location']['polyline'] = " ".join(str(p) for p in chain.from_iterable(feature['geometry']['coordinates']))
     except KeyError:
         pass
-    
+
     return output
+
+
+def filterRecords(r):
+    return all([
+        r['properties'].get('starttime') is not None,
+        r['properties'].get('type') == 'Full'
+    ])
+
 
 def run():
     try:
         with urllib.request.urlopen(JSONURL) as response:
             data = json.load(response)
-   
+
     except (urllib.error.URLError, ConnectionError, json.JSONDecodeError) as error:
         logging.error(error)
         return
-    
-    features = filter(lambda x: x['properties']['starttime'], data['features'])
+
+    features = filter(filterRecords, data['features'])
     obj = {"incidents": [feature2Waze(f) for f in features]}
 
     try:
@@ -73,7 +82,7 @@ def run():
     except OSError as os_error:
         logging.error(os_error)
         return
-    
+
     os.chmod(OUTPUT_CLOSURES_FILE, 644)
     logging.debug(f'Wrote Waze Feed Closures JSON files: {OUTPUT_CLOSURES_FILE}')
 
@@ -82,5 +91,3 @@ if __name__ == "__main__":
     while True:
         run()
         time.sleep(DELAY)
-
-
